@@ -1,6 +1,6 @@
 # CodeLens 🔍
 > Semantic codebase search engine — ask your GitHub repo questions in plain English.
-> **Status: actively building** (Week 2/4)
+> **Status: actively building**
 
 ## What it does
 Paste a GitHub repo URL → CodeLens indexes every function using 
