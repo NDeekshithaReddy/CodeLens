@@ -29,7 +29,7 @@ with exact file + function citations.
 
 ## How to run locally
 \`\`\`bash
-git clone https://github.com/yourusername/codelens
+git clone https://github.com/NDeekshithaReddy/codelens
 pip install -r requirements.txt
 # Add your GEMINI_API_KEY to .env
 uvicorn main:app --reload
