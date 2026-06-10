@@ -12,14 +12,35 @@ import git, tempfile, shutil
 load_dotenv()
 
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-conn = psycopg2.connect(
-    dbname="codelens",
-    user="postgres",
-    password=os.getenv("DB_PASSWORD"),
-    host="localhost",
-    port=5432
-)
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    conn = psycopg2.connect(DATABASE_URL)
+else:
+    conn = psycopg2.connect(
+        dbname="codelens",
+        user="postgres",
+        password=os.getenv("DB_PASSWORD"),
+        host="localhost",
+        port=5432
+    )
 cur = conn.cursor()
+
+def init_db():
+    cur.execute("CREATE EXTENSION IF NOT EXISTS vector")
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS code_chunks (
+            id SERIAL PRIMARY KEY,
+            repo_url TEXT,
+            file_path TEXT,
+            function_name TEXT,
+            code TEXT,
+            embedding vector(768)
+        )
+    """)
+    conn.commit()
+
+init_db()
 
 PY_LANG = Language(tspy.language())
 parser = Parser(PY_LANG)
@@ -28,10 +49,11 @@ SKIP_DIRS = {'.git', '__pycache__', 'venv', 'node_modules'}
 
 
 def embed(text):
-    response = ollama.embed(input=text, model="mxbai-embed-large")
-    if "embeddings" in response:
-        return response["embeddings"][0]
-    return response["embedding"]
+    response = client.models.embed_content(
+        model="models/text-embedding-004",
+        context = text
+    )
+    return response.embeddings[0].values
 
 
 def ask(text, chunks):
